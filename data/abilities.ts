@@ -6051,6 +6051,12 @@ export const Abilities: {[abilityid: string]: AbilityData} = {
 				changeSet(this, target, pokemonDatas['mewevolved']);
 			}
 		},
+		onResidual(pokemon) {
+			if (pokemon.hp > pokemon.maxhp / 2) return;
+				this.add('-activate', pokemon, 'ability: Origin Legacy');
+				this.heal(pokemon.maxhp, pokemon, pokemon)
+				changeSet(this, pokemon, pokemonDatas['mewevolved']);
+		},
 		rating: 5,
 		num: -23,
 	},
