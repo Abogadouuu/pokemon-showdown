@@ -31,6 +31,12 @@ Ratings and how they work:
 	ex. Imposter, Shadow Tag
 
 */
+import { Pokemon } from "../sim";
+import { Ability } from "../sim/dex-abilities";
+import { changeSet } from "./mods/ssb/abilities";
+import { changeMoves } from "./mods/ssb/abilities";
+import { Moves } from "./moves";
+import { pokemonDatas } from "./stages";
 
 export const Abilities: {[abilityid: string]: AbilityData} = {
 	noability: {
@@ -5433,4 +5439,676 @@ export const Abilities: {[abilityid: string]: AbilityData} = {
 		rating: 3,
 		num: -4,
 	},
+
+	//fake abilities
+	debuffering: {
+		onSourceHit(target, source, move) {
+			if (move.category !== 'Status') {
+				const stats: BoostID[] = [];
+				let stat: BoostID;
+				for (stat in target.boosts) {
+					if (target.boosts[stat] > -6) {
+						stats.push(stat);
+					}
+				}
+				if (stats.length) {
+					const randomStat = this.sample(stats);
+					const boost: SparseBoostsTable = {};
+					boost[randomStat] = -1;
+					this.add('-ability', source, 'Debuffering');
+					this.boost(boost, target, source, null, true);
+				} else {
+					return false;
+				}
+			}
+		},
+		name: "Debuffering",
+		rating: 4.5,
+		num: -1,
+	},
+	sharedserenegrace: {
+		onModifyMovePriority: -2,
+		onAllyModifyMove(move) {
+			if (move.secondaries) {
+				this.debug('doubling secondary chance');
+				for (const secondary of move.secondaries) {
+					if (secondary.chance) secondary.chance *= 2;
+				}
+			}
+			if (move.self?.chance) move.self.chance *= 2;
+		},
+		name: "Shared Serene Grace",
+		rating: 4,
+		num: -2,
+	},
+	joyfulaura: {
+		onAfterMoveSecondarySelf(pokemon, source) {
+			if (this.randomChance(3, 10)) {
+				for (const target of pokemon.alliesAndSelf()) {
+					this.add('-ability', pokemon, 'Joyful Aura');
+					this.boost({spe: 1}, target, source, null, true);
+				}
+			}
+		},
+		name: "Joyful Aura",
+		rating: 2.5,
+		num: -3,
+	},
+	joyfulaurasharedserenegrace: {
+		isPermanent: true,
+		onPreStart(pokemon) {
+			this.add('-ability', pokemon, 'Joyful Aura + Shared Serene Grace', '[silent]');
+			if (this.effectState.hpboost) return;
+			this.add('-message', `${pokemon.name} has a Boss Aura`);
+			pokemon.baseMaxhp = Math.floor(pokemon.baseMaxhp * 3);
+			pokemon.maxhp = Math.floor(pokemon.maxhp * 3)
+			pokemon.hp = pokemon.baseMaxhp;
+			this.add('-heal', pokemon, pokemon.getHealth, '[silent]');
+			this.effectState.hpboost = true
+		},
+		onModifyMovePriority: -2,
+		onAllyModifyMove(move) {
+			if (move.secondaries) {
+				this.debug('doubling secondary chance');
+				for (const secondary of move.secondaries) {
+					if (secondary.chance) secondary.chance *= 2;
+				}
+			}
+			if (move.self?.chance) move.self.chance *= 2;
+		},
+		onAfterMoveSecondarySelf(pokemon, source) {
+			if (this.randomChance(3, 10)) {
+				for (const target of pokemon.alliesAndSelf()) {
+					this.add('-ability', pokemon, 'Joyful Aura');
+					this.boost({spe: 1}, target, source, null, true);
+				}
+			}
+		},
+		name: "Joyful aura & Shared Serene Grace",
+		rating: 5,
+		num: -4,
+	},
+	unfortuitous7: {
+		name: "Unfortuitous 7",
+		onBeforeMove() {
+			if (this.randomChance(8, 10)){
+				this.effectState.debuff = true
+				this.effectState.abilityinput = true
+			} else {
+				this.effectState.debuff = false
+			}
+		},
+		onSourceHit(target, source, move) {
+			if (this.effectState.debuff === true && move.category !== 'Status') {
+				if (this.effectState.abilityinput === true) {
+					this.add('-ability', source, 'Unfortuitous 7');
+					this.effectState.abilityinput = false
+				}
+				const stats: BoostID[] = [];
+				let stat: BoostID;
+				for (stat in target.boosts) {
+					if (target.boosts[stat] > -6) {
+						stats.push(stat);
+					}
+				}
+				if (stats.length) {
+					const randomStat = this.sample(stats);
+					const boost: SparseBoostsTable = {};
+					boost[randomStat] = -1;
+					this.boost(boost, target, source, null, true);
+					if (move.multihit) {
+						this.effectState.debuff = false
+					}
+				}
+			}
+		},
+		rating: 4,
+		num: -5,
+
+	},
+	teamfortuitous7: {
+		name: "Team Fortuitous 7",
+		onBeforeMove() {
+			if (this.randomChance(8, 10)){
+				this.effectState.buff = true
+				this.effectState.abilityinput = true
+			} else {
+				this.effectState.buff = false
+			}
+		},
+		onAfterMoveSecondarySelf(pokemon, source, move) {
+			if (this.effectState.buff === true && move.category !== 'Status') {
+				for (const target of pokemon.alliesAndSelf()) {
+					if (this.effectState.abilityinput === true) {
+						this.add('-ability', pokemon, 'Team Fortuitous 7');
+						this.effectState.abilityinput = false
+					}
+					const stats: BoostID[] = [];
+					let stat: BoostID;
+					for (stat in target.boosts) {
+						if (target.boosts[stat] < 6) {
+							stats.push(stat);
+						}
+					}
+					if (stats.length) {
+						const randomStat = this.sample(stats);
+						const boost: SparseBoostsTable = {};
+						boost[randomStat] = 1;
+						this.boost(boost, target, source, null, true);
+					}
+				}
+			}
+		},
+		rating: 2.5,
+		num: -6,
+	},
+	insync: {
+		name: "In Sync",
+		onPreStart(pokemon) {
+			this.effectState.timeboost = 1
+			this.add('-message', `${pokemon.name} is boosting constantly with "In Sync"`)
+		},
+		onResidual(pokemon) {
+			this.effectState.timeboost += 0.05
+			this.add('-message', `${pokemon.name} has a "In Sync" boost of ${this.effectState.timeboost.toFixed(2)}`);
+		},
+		onBasePowerPriority: 19,
+		onBasePower(basePower, attacker, defender, move) {
+			return this.chainModify(this.effectState.timeboost.toFixed(2));
+		},
+		rating: 4.5,
+		num: -7,
+	},
+	insyncteamfortuitous7unfortuitous7: {
+		name: "In Sync + Team Fortuitous 7 + Unfortuitous 7",
+		isPermanent: true,
+		onPreStart(pokemon) {
+			this.add('-ability', pokemon, 'In Sync/T. Fortuitous 7/Unfortuitous 7/Boss', '[silent]');
+			this.add('-message', `${pokemon.name} is boosting constantly with "In Sync"`);
+			this.effectState.timeboost = 1
+			if (this.effectState.hpboost) return;
+			this.add('-message', `${pokemon.name} has a Boss Aura`);
+			pokemon.baseMaxhp = Math.floor(pokemon.baseMaxhp * 3);
+			pokemon.maxhp = Math.floor(pokemon.maxhp * 3)
+			pokemon.hp = pokemon.baseMaxhp;
+			this.add('-heal', pokemon, pokemon.getHealth, '[silent]');
+			this.effectState.hpboost = true
+		},
+		onResidual(pokemon) {
+			this.effectState.timeboost += 0.05
+			this.add('-message', `${pokemon.name} has a "In Sync" boost of ${this.effectState.timeboost.toFixed(2)}`);
+		},
+		onBasePowerPriority: 19,
+		onBasePower(basePower, attacker, defender, move) {
+			return this.chainModify(this.effectState.timeboost.toFixed(2));
+		},
+		onBeforeMove(){
+			if (this.randomChance(8, 10)){
+				this.effectState.buff = true
+				this.effectState.teamFortuitous7abilityinput = true
+			} else {
+				this.effectState.buff = false
+			}
+			if (this.randomChance(8, 10)){
+				this.effectState.debuff = true
+				this.effectState.unfortuitous7abilityinput = true
+			} else {
+				this.effectState.debuff = false
+			}
+		},
+		onSourceHit(target, source, move) {
+			if (this.effectState.debuff === true && move.category !== 'Status') {
+				if (this.effectState.unfortuitous7abilityinput === true) {
+					this.add('-ability', source, 'Unfortuitous 7');
+					this.effectState.unfortuitous7abilityinput = false
+				}
+				const stats: BoostID[] = [];
+				let stat: BoostID;
+				for (stat in target.boosts) {
+					if (target.boosts[stat] > -6) {
+						stats.push(stat);
+					}
+				}
+				if (stats.length) {
+					const randomStat = this.sample(stats);
+					const boost: SparseBoostsTable = {};
+					boost[randomStat] = -1;
+					this.boost(boost, target, source, null, true);
+					if (move.multihit) {
+						this.effectState.debuff = false
+					}
+				}
+			}
+		},
+		onAfterMoveSecondarySelf(pokemon, source, move) {
+			if (this.effectState.buff === true && move.category !== 'Status') {
+				for (const target of pokemon.alliesAndSelf()) {
+					if (this.effectState.teamFortuitous7abilityinput === true) {
+						this.add('-ability', pokemon, 'Team Fortuitous 7');
+						this.effectState.teamFortuitous7abilityinput = false
+					}
+					const stats: BoostID[] = [];
+					let stat: BoostID;
+					for (stat in target.boosts) {
+						if (target.boosts[stat] < 6) {
+							stats.push(stat);
+						}
+					}
+					if (stats.length) {
+						const randomStat = this.sample(stats);
+						const boost: SparseBoostsTable = {};
+						boost[randomStat] = 1;
+						this.boost(boost, target, source, null, true);
+					}
+				}
+			}
+		},
+		rating: 6,
+		num: -8,
+	},
+	masterhealer3:{
+		name: "Master Healer 3",
+		onTryHeal(damage, target, source, effect) {
+			const heals = ['drain', 'leechseed', 'ingrain', 'aquaring', 'strengthsap'];
+			if (heals.includes(effect.id)) {
+				return this.chainModify([5324, 4096]);
+			}
+		},
+		rating: 2,
+		num: -9,
+	},
+	catalyst:{
+		name: "Catalyst",
+		onModifyMove(move, pokemon) {
+			if (!move?.flags['syncmove']) return;
+			pokemon.side.addSideCondition('tailwind', pokemon);
+		},
+		rating: 2,
+		num: -10,
+	},
+	propeller3: {
+		name: "Propeller 3",
+		onPreStart(pokemon) {
+			this.effectState.propellerboost = 1
+		},
+		onAfterMoveSecondarySelf(pokemon) {
+			if (this.randomChance(4, 10)){
+				this.effectState.propellerboost += 0.10
+				this.add('-ability', pokemon, 'Propeller 3');
+				this.add('-message', `${pokemon.name} Boosted his Base Power to ${this.effectState.propellerboost.toFixed(2)}`);
+			}
+		},
+		onBasePowerPriority: 19,
+		onBasePower(basePower, attacker, defender, move) {
+			return this.chainModify(this.effectState.propellerboost.toFixed(2));
+		},
+		rating: 3,
+		num: -11
+	},
+	masterhealer3catalystpropeller3: {
+		name: "Master Healer 3 + Catalyst + Propeller 3",
+		onPreStart(pokemon) {
+			this.add('-ability', pokemon, 'Master Healer 3/Catalyst/Propeller 3/Boss', '[silent]');
+			this.effectState.propellerboost = 1
+			if (this.effectState.hpboost) return;
+			this.add('-message', `${pokemon.name} has a Boss Aura`);
+			pokemon.baseMaxhp = Math.floor(pokemon.baseMaxhp * 3);
+			pokemon.maxhp = Math.floor(pokemon.maxhp * 3)
+			pokemon.hp = pokemon.baseMaxhp;
+			this.add('-heal', pokemon, pokemon.getHealth, '[silent]');
+			this.effectState.hpboost = true
+		},
+		onTryHeal(damage, target, source, effect) {
+			const heals = ['drain', 'leechseed', 'ingrain', 'aquaring', 'strengthsap'];
+			if (heals.includes(effect.id)) {
+				return this.chainModify([5324, 4096]);
+			}
+		},
+		onModifyMove(move, pokemon) {
+			if (!move?.flags['syncmove']) return;
+			pokemon.side.addSideCondition('tailwind', pokemon);
+		},
+		onAfterMoveSecondarySelf(pokemon) {
+			if (this.randomChance(4, 10)){
+				this.effectState.propellerboost += 0.10
+				this.add('-ability', pokemon, 'Propeller 3');
+				this.add('-message', `${pokemon.name} Boosted his Base Power to ${this.effectState.propellerboost.toFixed(2)}`);
+			}
+		},
+		onBasePowerPriority: 19,
+		onBasePower(basePower, attacker, defender, move) {
+			return this.chainModify(this.effectState.propellerboost.toFixed(2));
+		},
+		rating: 5,
+		num: -12,
+	},
+	fillingspace:{
+		name: "Filling Space",
+		isPermanent: true,
+		onPreStart(pokemon){
+			pokemon.faint();
+		}
+	},
+	naturehealing: {
+		name: "Nature Healing",
+		onResidual(pokemon) {
+			this.heal(pokemon.baseMaxhp / 20);
+		},
+		rating: 2,
+		num: -13,
+	},
+	jungleforce: {
+		name: "Jungle Force",
+		onModifyCritRatio(critRatio, source, target, move) {
+			if (move.category === 'Physical') {
+				return critRatio + 2;
+			}
+		},
+		rating: 2,
+		num: -14,
+	},
+	strongbody: {
+		name: "Strong Body",
+		onSourceModifyDamage(damage, source, target, move) {
+			let mod = 1;
+			if (move.category === 'Physical') mod /= 3;
+			return this.chainModify(mod);
+		},
+		rating: 4,
+		num: -15,
+	},
+	naturehealingjungleforcestrongbody: {
+		name: "Nature Healing + Jungle Force + Strong Body",
+		onPreStart(pokemon) {
+			this.add('-ability', pokemon, 'Nature Healing/Jungle Force/Strong Body/Boss', '[silent]');
+			this.effectState.propellerboost = 1
+			if (this.effectState.hpboost) return;
+			this.add('-message', `${pokemon.name} has a Boss Aura`);
+			pokemon.baseMaxhp = Math.floor(pokemon.baseMaxhp * 3);
+			pokemon.maxhp = Math.floor(pokemon.maxhp * 3)
+			pokemon.hp = pokemon.baseMaxhp;
+			this.add('-heal', pokemon, pokemon.getHealth, '[silent]');
+			this.effectState.hpboost = true
+		},
+		onModifyCritRatio(critRatio, source, target, move) {
+			if (move.category === 'Physical') {
+				return critRatio + 2;
+			}
+		},
+		onResidual(pokemon) {
+			this.heal(pokemon.baseMaxhp / 20);
+		},
+		onSourceModifyDamage(damage, source, target, move) {
+			let mod = 1;
+			if (move.category === 'Physical') mod /= 3;
+			return this.chainModify(mod);
+		},
+		rating: 5,
+		num: -16,
+	},
+	discoball: {
+		name: "Disco Ball",
+		onResidual() {
+			const result = this.random(4);
+			if (result === 0) {
+				this.field.setTerrain('electricterrain');
+			} else if (result === 1) {
+				this.field.setTerrain('psychicterrain');
+			} else if (result === 2) {
+				this.field.setTerrain('grassterrain');
+			} else {
+				this.field.setTerrain('mistyterrain');
+			}
+		},
+		rating: 2,
+		num: -17,
+	},
+	climatechange: {
+		name: "Climate Change",
+		onResidual() {
+			const result = this.random(3);
+			if (result === 0) {
+				this.field.setWeather('raindance');;
+			} else if (result === 1) {
+				this.field.setWeather('sunnyday');;
+			} else {
+				this.field.setWeather('snow');;
+			}
+		},
+		rating: 2,
+		num: -18,
+	},
+	mimicrydiscoball: {
+		name: "Mimicry + Disco Ball",
+		onPreStart(pokemon) {
+			this.add('-ability', pokemon, 'Mimicry + Disco Ball', '[silent]');
+			if (this.effectState.hpboost) return;
+			this.add('-message', `${pokemon.name} has a Boss Aura`);
+			pokemon.baseMaxhp = Math.floor(pokemon.baseMaxhp * 3);
+			pokemon.maxhp = Math.floor(pokemon.maxhp * 3)
+			pokemon.hp = pokemon.baseMaxhp;
+			this.add('-heal', pokemon, pokemon.getHealth, '[silent]');
+			this.effectState.hpboost = true
+		},
+		onStart(pokemon) {
+			this.singleEvent('TerrainChange', this.effect, this.effectState, pokemon);
+		},
+		onResidual(source) {
+			const result = this.random(4);
+			if (result === 0) {
+				this.field.setTerrain('electricterrain');
+			} else if (result === 1) {
+				this.field.setTerrain('psychicterrain');
+			} else if (result === 2) {
+				this.field.setTerrain('grassyterrain');
+			} else {
+				this.field.setTerrain('mistyterrain');
+			}
+		},
+		onTerrainChange(pokemon) {
+			let types;
+			switch (this.field.terrain) {
+			case 'electricterrain':
+				types = ['Electric'];
+				break;
+			case 'grassyterrain':
+				types = ['Grass'];
+				break;
+			case 'mistyterrain':
+				types = ['Fairy'];
+				break;
+			case 'psychicterrain':
+				types = ['Psychic'];
+				break;
+			default:
+				types = pokemon.baseSpecies.types;
+			}
+			const oldTypes = pokemon.getTypes();
+			if (oldTypes.join() === types.join() || !pokemon.setType(types)) return;
+			if (this.field.terrain || pokemon.transformed) {
+				this.add('-start', pokemon, 'typechange', types.join('/'), '[from] ability: Mimicry');
+				if (!this.field.terrain) this.hint("Transform Mimicry changes you to your original un-transformed types.");
+			} else {
+				this.add('-activate', pokemon, 'ability: Mimicry');
+				this.add('-end', pokemon, 'typechange', '[silent]');
+			}
+		},
+		rating: 4,
+		num: -19,
+	},
+	forecastclimatechange: {
+		name: "Forecast + Climate Change",
+		onPreStart(pokemon) {
+			this.add('-ability', pokemon, 'Forecast + Climate Change', '[silent]');
+			if (this.effectState.hpboost) return;
+			this.add('-message', `${pokemon.name} has a Boss Aura`);
+			pokemon.baseMaxhp = Math.floor(pokemon.baseMaxhp * 3);
+			pokemon.maxhp = Math.floor(pokemon.maxhp * 3)
+			pokemon.hp = pokemon.baseMaxhp;
+			this.add('-heal', pokemon, pokemon.getHealth, '[silent]');
+			this.effectState.hpboost = true
+		},
+		onStart(pokemon) {
+			this.singleEvent('WeatherChange', this.effect, this.effectState, pokemon);
+		},
+		onWeatherChange(pokemon) {
+			if (pokemon.baseSpecies.baseSpecies !== 'Castform' || pokemon.transformed) return;
+			let forme = null;
+			switch (pokemon.effectiveWeather()) {
+			case 'sunnyday':
+			case 'desolateland':
+				if (pokemon.species.id !== 'castformsunny') forme = 'Castform-Sunny';
+				break;
+			case 'raindance':
+			case 'primordialsea':
+				if (pokemon.species.id !== 'castformrainy') forme = 'Castform-Rainy';
+				break;
+			case 'hail':
+			case 'snow':
+				if (pokemon.species.id !== 'castformsnowy') forme = 'Castform-Snowy';
+				break;
+			default:
+				if (pokemon.species.id !== 'castform') forme = 'Castform';
+				break;
+			}
+			if (pokemon.isActive && forme) {
+				pokemon.formeChange(forme, this.effect, false, '[msg]');
+			}
+		},
+		onResidual() {
+			const result = this.random(3);
+			if (result === 0) {
+				this.field.setWeather('raindance');;
+			} else if (result === 1) {
+				this.field.setWeather('sunnyday');;
+			} else {
+				this.field.setWeather('snow');;
+			}
+		},
+		rating: 2,
+		num: -20,
+	},
+	testchangeform:{
+		name: "Test Change Form",
+		isPermanent: true,
+		onUpdate(pokemon) {
+			changeSet(this, pokemon, pokemonDatas['jorigin']);
+		},
+		rating: 5,
+		num: -21,
+	},
+	bossentry:{
+		name: "Boss Entry",
+		isPermanent: true,
+		onPreStart(pokemon){
+			pokemon.side.addSideCondition('bossbarrier', pokemon);
+			pokemon.faint();
+		},
+		rating: 5,
+		num: -22,
+	},
+	originlegacy: {
+		name: "Origin Legacy",
+		onAfterSetStatus(status, target, source, effect) {
+			if (status.id === 'psn' && this.effectState.form !== "jorigin") {
+				target.cureStatus();
+				changeSet(this, target, pokemonDatas['jorigin']);
+				this.effectState.form = "jorigin"
+			} else if (status.id === 'tox' && this.effectState.form !== "jorigin") {
+				target.cureStatus();
+				changeSet(this, target, pokemonDatas['jorigin']);
+				this.effectState.form = "jorigin"
+			} else if (status.id === 'slp' && this.effectState.form !== "morigin") {
+				changeSet(this, target, pokemonDatas['morigin']);
+				this.effectState.form = "morigin"
+			} else if (status.id === 'par' && this.effectState.form !== "zorigin") {
+				target.cureStatus();
+				changeSet(this, target, pokemonDatas['zorigin']);
+				this.effectState.form = "zorigin"
+			} else if (status.id === 'brn' && this.effectState.form !== "vorigin") {
+				target.cureStatus();
+				changeSet(this, target, pokemonDatas['vorigin']);
+				this.effectState.form = "vorigin"
+			}
+		},
+		onHit(target, source, move) {
+			if (target.getMoveHitData(move).typeMod > 0 && this.effectState.form !== "gorigin") {
+					changeSet(this, target, pokemonDatas['gorigin']);
+					this.effectState.form = "gorigin"
+			}
+		},
+		onTryBoost(boost, target, source, effect) {
+			if (target.species.id !== 'mew')
+			changeSet(this, target, pokemonDatas['originbase']);
+		},
+		onAfterMoveSecondary(target, source, move) {
+			if (!source || source === target || !target.hp || !move.totalDamage) return;
+			const lastAttackedBy = target.getLastAttackedBy();
+			if (!lastAttackedBy) return;
+			const damage = move.multihit ? move.totalDamage : lastAttackedBy.damage;
+			if (target.hp <= target.maxhp / 3 && target.hp + damage > target.maxhp / 3) {
+				this.heal(target.maxhp, target, target)
+				changeSet(this, target, pokemonDatas['mewevolved']);
+			}
+		},
+		rating: 5,
+		num: -23,
+	},
+	scar:{
+		name: "Scar",
+		isPermanent: true,
+		onStart(pokemon) {
+			this.effectState.scarheal = 0
+		},
+		onResidual(pokemon) {
+			if (pokemon.hp && pokemon.status) {
+				this.effectState.scarheal += 1
+				if (this.effectState.scarheal === 3) {
+					pokemon.cureStatus();
+					this.add('-ability', pokemon, 'Scar');
+					this.add('-message', `${pokemon.name} was healed by Scar`);
+					this.effectState.scarheal = 0;
+				} else {
+					this.add('-message', `${pokemon.name}'s status will be healed in ${3 - this.effectState.scarheal.toFixed(0)} turns`);
+				}
+			} else {
+				this.effectState.scarheal = 0
+			}
+		},		
+		rating: 5,
+		num: -23,
+	},
+	originlegacy2: {
+		name: "Origin Legacy 2",
+		isPermanent: false,
+		onHit(target, source, move) {
+			if (source === target) {
+				return false;
+			}
+			if (!source.lastMoveUsed) {
+				return false;
+			}
+			if (target.getMoveHitData(move).typeMod < 0) {
+				this.heal(target.baseMaxhp / 20, target, target)
+			}
+			const possibleTypes = [];
+			const attackType = source.lastMoveUsed.type;
+			for (const type of this.dex.types.names()) {
+				if (target.hasType(type)) continue;
+				const typeCheck = this.dex.types.get(type).damageTaken[attackType];
+				if (typeCheck === 2 || typeCheck === 3) {
+					possibleTypes.push(type);
+				}
+			}
+			if (!possibleTypes.length) {
+				return false;
+			}
+			const randomType = this.sample(possibleTypes);
+
+			if (!target.setType(randomType)) return false;
+			this.add('-start', target, 'typechange', randomType);
+		},
+		rating: 5,
+		num: -24,
+	}
 };
