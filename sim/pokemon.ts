@@ -373,7 +373,7 @@ export class Pokemon {
 			if (!this.set.ivs[stat] && this.set.ivs[stat] !== 0) this.set.ivs[stat] = 31;
 		}
 		for (stat in this.set.evs) {
-			this.set.evs[stat] = this.battle.clampIntRange(this.set.evs[stat], 0, 255);
+			this.set.evs[stat] = this.battle.clampIntRange(this.set.evs[stat], 0, 9999); //edited
 		}
 		for (stat in this.set.ivs) {
 			this.set.ivs[stat] = this.battle.clampIntRange(this.set.ivs[stat], 0, 31);
@@ -1586,6 +1586,9 @@ export class Pokemon {
 
 	/** Unlike clearStatus, gives cure message */
 	cureStatus(silent = false) {
+		if (this.status === "mgr") {
+			this.battle.add("-end", this, "Migraine", "[silent]");
+		}
 		if (!this.hp || !this.status) return false;
 		this.battle.add('-curestatus', this, this.status, silent ? '[silent]' : '[msg]');
 		if (this.status === 'slp' && this.removeVolatile('nightmare')) {
@@ -1665,6 +1668,9 @@ export class Pokemon {
 	 * Unlike cureStatus, does not give cure message
 	 */
 	clearStatus() {
+		if (this.status === "mgr") {
+			this.battle.add("-end", this, "Migraine", "[silent]");
+		}
 		if (!this.hp || !this.status) return false;
 		if (this.status === 'slp' && this.removeVolatile('nightmare')) {
 			this.battle.add('-end', this, 'Nightmare', '[silent]');

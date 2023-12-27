@@ -17,6 +17,27 @@ export const Conditions: {[k: string]: ConditionData} = {
 			this.damage(pokemon.baseMaxhp / 16);
 		},
 	},
+	mgr: {
+		name: 'mgr',
+		effectType: 'Status',
+		onStart(target, source, sourceEffect) {
+			if (sourceEffect && sourceEffect.effectType === 'Ability') {
+				this.add('-status', target, 'mgr', '[from] ability: ' + sourceEffect.name, '[of] ' + source);
+			} else {
+				this.add('-status', target, 'mgr');
+			}
+			this.add('-start', target, 'migraine')
+		},
+		onEnd(pokemon) {
+			this.add('-curestatus', pokemon, 'migraine');
+		},
+
+		// Damage reduction is handled directly in the sim/battle.js damage function
+		onResidualOrder: 10,
+		onResidual(pokemon) {
+			this.damage(pokemon.baseMaxhp / 16);
+		},
+	},
 	par: {
 		name: 'par',
 		effectType: 'Status',
@@ -313,6 +334,44 @@ export const Conditions: {[k: string]: ConditionData} = {
 		},
 		onMoveAborted(pokemon) {
 			pokemon.removeVolatile('twoturnmove');
+		},
+	},
+	dissapeared: {
+		// Skull Bash, SolarBeam, Sky Drop...
+		name: 'dissapeared',
+		duration: 3,
+		onStart(attacker, defender, effect) {
+			this.effectState.trueDuration = this.random(3, 4);
+			// ("attacker" is the Pokemon using the two turn move and the Pokemon this condition is being applied to)
+			this.effectState.move = effect.id;
+			attacker.addVolatile(effect.id);
+			// lastMoveTargetLoc is the location of the originally targeted slot before any redirection
+			// note that this is not updated for moves called by other moves
+			// i.e. if Dig is called by Metronome, lastMoveTargetLoc will still be the user's location
+			let moveTargetLoc: number = attacker.lastMoveTargetLoc!;
+			if (effect.sourceEffect && this.dex.moves.get(effect.id).target !== 'self') {
+				// this move was called by another move such as Metronome
+				// and needs a random target to be determined this turn
+				// it will already have one by now if there is any valid target
+				// but if there isn't one we need to choose a random slot now
+				if (defender.fainted) {
+					defender = this.sample(attacker.foes(true));
+				}
+				moveTargetLoc = attacker.getLocOf(defender);
+			}
+			attacker.volatiles[effect.id].targetLoc = moveTargetLoc;
+			this.attrLastMove('[still]');
+			// Run side-effects normally associated with hitting (e.g., Protean, Libero)
+			this.runEvent('PrepareHit', attacker, defender, effect);
+		},
+		onEnd(target) {
+			target.removeVolatile(this.effectState.move);
+		},
+		onLockMove() {
+			return this.effectState.move;
+		},
+		onMoveAborted(pokemon) {
+			pokemon.removeVolatile('dissapeared');
 		},
 	},
 	choicelock: {
