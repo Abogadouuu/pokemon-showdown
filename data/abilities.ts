@@ -6009,39 +6009,49 @@ export const Abilities: {[abilityid: string]: AbilityData} = {
 	},
 	originlegacy: {
 		name: "Origin Legacy",
+		onStart(pokemon) {
+			this.effectState.mewcounter = 0
+		},
 		onAfterSetStatus(status, target, source, effect) {
-			if (status.id === 'psn' && this.effectState.form !== "jorigin") {
+			if (status.id === 'psn' && target.species.id !== 'jirachi') {
+				this.effectState.mewcounter = 0;
 				target.cureStatus();
-				changeSet(this, target, pokemonDatas['jorigin']);
-				this.effectState.form = "jorigin"
-			} else if (status.id === 'tox' && this.effectState.form !== "jorigin") {
+				this.effectState.form = "jorigin";
+				changeSet(this, target, pokemonDatas['jorigin'])
+			} else if (status.id === 'tox'  && target.species.id !== 'jirachi') {
+				this.effectState.mewcounter = 0;
 				target.cureStatus();
-				changeSet(this, target, pokemonDatas['jorigin']);
-				this.effectState.form = "jorigin"
-			} else if (status.id === 'slp' && this.effectState.form !== "morigin") {
-				changeSet(this, target, pokemonDatas['morigin']);
-				this.effectState.form = "morigin"
-			} else if (status.id === 'par' && this.effectState.form !== "zorigin") {
+				this.effectState.form = "jorigin";
+				changeSet(this, target, pokemonDatas['jorigin'])
+			} else if (status.id === 'slp'  && target.species.id !== 'manaphy') {
+				this.effectState.mewcounter = 0;
+				this.effectState.form = "morigin";
+				changeSet(this, target, pokemonDatas['morigin'])
+			} else if (status.id === 'par'  && target.species.id !== 'zeraora') {
+				this.effectState.mewcounter = 0;
 				target.cureStatus();
-				changeSet(this, target, pokemonDatas['zorigin']);
-				this.effectState.form = "zorigin"
-			} else if (status.id === 'brn' && this.effectState.form !== "vorigin") {
+				this.effectState.form = "zorigin";
+				changeSet(this, target, pokemonDatas['zorigin'])
+			} else if (status.id === 'brn'  && target.species.id !== 'victini') {
+				this.effectState.mewcounter = 0;
 				target.cureStatus();
-				changeSet(this, target, pokemonDatas['vorigin']);
-				this.effectState.form = "vorigin"
+				this.effectState.form = "vorigin";
+				changeSet(this, target, pokemonDatas['vorigin'])
 			}
 		},
 		onHit(target, source, move) {
-			if (target.getMoveHitData(move).typeMod > 0 && this.effectState.form !== "gorigin") {
-					changeSet(this, target, pokemonDatas['gorigin']);
-					this.effectState.form = "gorigin"
+			if (target.getMoveHitData(move).typeMod > 0 && target.species.id !== 'genesect') {
+					this.effectState.mewcounter = 0;
+					this.effectState.form = "gorigin";
+					changeSet(this, target, pokemonDatas['gorigin'])		
 			}
 		},
 		onTryBoost(boost, target, source, effect) {
 			if (target.species.id !== 'mew')
+			this.effectState.form = "originbase";
 			changeSet(this, target, pokemonDatas['originbase']);
 		},
-		onAfterMoveSecondary(target, source, move) {
+		/*onAfterMoveSecondary(target, source, move) {
 			if (!source || source === target || !target.hp || !move.totalDamage) return;
 			const lastAttackedBy = target.getLastAttackedBy();
 			if (!lastAttackedBy) return;
@@ -6050,7 +6060,7 @@ export const Abilities: {[abilityid: string]: AbilityData} = {
 				this.heal(target.maxhp, target, target)
 				changeSet(this, target, pokemonDatas['mewevolved']);
 			}
-		},
+		},*/
 		onResidual(pokemon) {
 			if (pokemon.hp > pokemon.maxhp / 2) return;
 				this.add('-activate', pokemon, 'ability: Origin Legacy');
