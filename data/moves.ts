@@ -23246,6 +23246,9 @@ export const Moves: {[moveid: string]: MoveData} = {
 		priority: 0,
 		flags: {contact: 1, protect: 1, mirror: 1, heal: 1, metronome: 1},
 		drain: [1, 2],
+		onPrepareHit(target, source) {
+			this.add('-anim', source, 'Leech Life', target);
+		},
 		secondary: null,
 		target: "normal",
 		type: "Normal",
