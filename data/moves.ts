@@ -22100,7 +22100,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		pp: 1,
 		noPPBoosts: true,
 		priority: 0,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22163,7 +22163,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		volatileStatus: "treatusbetter",
 		pp: 1,
 		priority: 0,
-		flags: {snatch: 1},
+		flags: {snatch: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		condition: {
 			onStart(pokemon) {
 				this.add('-start', pokemon, 'Regeneration');
@@ -22189,7 +22189,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		name: "Shining Assistance!",
 		pp: 1,
 		priority: 0,
-		flags: {snatch: 1},
+		flags: {snatch: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onHit(pokemon) {
 		for (const moveSlot of pokemon.moveSlots) {
 			if (moveSlot.id !== 'shiningassitance') {
@@ -22213,7 +22213,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		name: "Chill-Out and No Stress Dazzling Gleam",
 		pp: 1,
 		priority: 0,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22243,7 +22243,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		name: "Born to Shine!",
 		pp: 1,
 		priority: 0,
-		flags: {protect: 1, reflectable: 1, mirror: 1, allyanim: 1, distance: 1},
+		flags: {protect: 1, reflectable: 1, mirror: 1, allyanim: 1, distance: 1,  failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onHit(target) {
 			let success = false;
 			let i: BoostID;
@@ -22285,7 +22285,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		name: "Master Potion",
 		pp: 2,
 		priority: 0,
-		flags: {reflectable: 1, distance: 1, heal: 1, allyanim: 1},
+		flags: {reflectable: 1, distance: 1, heal: 1, allyanim: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22336,7 +22336,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		name: "V-Create of a Superstar",
 		pp: 1,
 		priority: 0,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		secondary: null,
 		target: "any",
 		type: "Fire",
@@ -22354,7 +22354,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		pp: 2,
 		noPPBoosts: true,
 		priority: 0,
-		flags: {heal: 1},
+		flags: {heal: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22392,7 +22392,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		pp: 1,
 		noPPBoosts: true,
 		priority: 0,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22450,7 +22450,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		priority: 0,
 		pp: 1,
 		noPPBoosts:true,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22521,7 +22521,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		pp: 1,
 		noPPBoosts: true,
 		priority: 0,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		drain: [1, 2],
 		onTryMove() {
 			this.attrLastMove('[still]');
@@ -22604,7 +22604,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		pp: 1,
 		noPPBoosts: true,
 		priority: 0,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22640,7 +22640,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		pp: 1,
 		noPPBoosts: true,
 		priority: 0,
-		flags: {syncmove: 1, allyanim: 1},
+		flags: {syncmove: 1, allyanim: 1,  failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
@@ -22672,7 +22672,7 @@ export const Moves: {[moveid: string]: MoveData} = {
 		pp: 1,
 		noPPBoosts: true,
 		priority: 0,
-		flags: {syncmove: 1},
+		flags: {syncmove: 1, failencore: 1, nosleeptalk: 1, noassist: 1, failcopycat: 1, failmimic: 1, failinstruct: 1},
 		onTryMove() {
 			this.attrLastMove('[still]');
 		},
