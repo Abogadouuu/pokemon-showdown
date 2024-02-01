@@ -6323,6 +6323,7 @@ export const Abilities: {[abilityid: string]: AbilityData} = {
 			if (!target.setType(randomType)) return false;
 			this.add('-start', target, 'typechange', randomType);
 		},
+		flags: {failroleplay: 1, noreceiver: 1, noentrain: 1, notrace: 1, failskillswap: 1, cantsuppress: 1},   
 		rating: 5,
 		num: -24,
 	}
