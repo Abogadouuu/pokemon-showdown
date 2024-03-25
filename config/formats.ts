@@ -213,7 +213,7 @@ export const Formats: FormatList = [
 	},
 
 	{
-		name: "[Gen 9] Doubles Custom Game",
+		name: "[Gen 9] Triples Custom Game",
 
 		mod: 'gen9',
 		gameType: 'triples',
